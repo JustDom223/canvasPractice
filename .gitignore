@@ -1,0 +1,5 @@
+package*
+package-lock.json
+node_modules
+.prettierrc
+eslint.config.mjs
