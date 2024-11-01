@@ -1,19 +1,15 @@
+body{
+    background: black;
+}
+
 #canvas1 {
-    /* border: 5px solid black; */
+    background: blue;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 600px;
-    height: 600px;
+    border: 5px solid white;
 }
-.controls{
-    position: absolute;
-    z-index: 10;
-    top: 50px;
-    left: 50%;
-    transform: translate(-50%);
-}
-.controls, select, option {
-    font-size: 25px;
+#playerImage, #backgroundImage, #enemyImage {
+    display: none;
 }
