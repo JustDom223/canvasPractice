@@ -1,91 +1,280 @@
-let playerState = 'idle'
-const dropDown = document.getElementById('animations')
-dropDown.addEventListener('change', function(e){
-    playerState = e.target.value
-})
-const canvas = document.getElementById('canvas1')
-const ctx = canvas.getContext('2d');
-console.log(ctx)
+window.addEventListener('load', function () {
+    const canvas = document.getElementById('canvas1');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 800;
+    canvas.height = 720;
+    let enemies = [];
+    let score = 0;
+    let gameOver = false
 
-const CANVAS_WIDTH = canvas.width = 600
-const CANVAS_HEIGHT = canvas.height = 600
+    class InputHandler {
+        constructor() {
+            this.keys = [];
+            window.addEventListener('keydown', (e) => {
+                if (
+                    (e.key === 'ArrowUp' ||
+                        e.key === 'ArrowDown' ||
+                        e.key === 'ArrowLeft' ||
+                        e.key === 'ArrowRight') &&
+                    this.keys.indexOf(e.key) === -1
+                ) {
+                    this.keys.push(e.key);
+                    // console.log(e.key)
+                }
+            });
+            window.addEventListener('keyup', (e) => {
+                if (
+                    e.key === 'ArrowUp' ||
+                    e.key === 'ArrowDown' ||
+                    e.key === 'ArrowLeft' ||
+                    e.key === 'ArrowRight'
+                ) {
+                    this.keys.splice(this.keys.indexOf(e.key), 1);
+                }
+            });
+        }
+    }
+    class Player {
+        constructor(gameWidth, gameHeight) {
+            this.gameWidth = gameWidth;
+            this.gameHeight = gameHeight;
+            this.width = 200;
+            this.height = 200;
+            this.x = 0;
+            this.y = this.gameHeight - this.height;
+            this.image = document.getElementById('playerImage');
+            this.frameX = 0;
+            this.frameY = 0;
+            this.maxFrame = 8;
+            this.fps = 20;
+            this.frameTimer = 0;
+            this.frameInterval = 1000 / this.fps;
+            this.speed = 0;
+            this.vy = 0;
+            this.weight = 1;
+        }
 
-const playerImage = new Image()
-playerImage.src = './sprites/shadow_dog.png'
-const spriteWidth = 575
-const spriteHeight = 523
-
-
-let gameFrame = 0 
-const staggerFrames = 5 
-const spriteAnimations = []
-const animationStates = [
-    {
-        name: 'idle',
-        frames: 7
-    },
-    {
-        name: 'jump',
-        frames: 7
-    },
-    {
-        name: 'fall',
-        frames: 7
-    },
-    {
-        name: 'run',
-        frames: 9
-    },
-    {
-        name: 'dizzy',
-        frames: 10
-    },
-    {
-        name: 'sit',
-        frames: 5
-    },
-    {
-        name: 'roll',
-        frames: 7
-    },
-    {
-        name: 'bite',
-        frames: 7
-    },
-    {
-        name: 'ko',
-        frames: 12
-    },
-    {
-        name: 'getHit',
-        frames: 4
-    },
-]
-animationStates.forEach((state, index) => {
-    let frames = {
-        loc: [],
+        draw(context) {
+            // context.strokeStyle = 'white';
+            // context.strokeRect(this.x, this.y, this.width, this.height);
+            // context.beginPath();
+            // context.arc(
+            //     this.x + this.width / 2,
+            //     this.y + this.height / 2,
+            //     this.width / 2,
+            //     0,
+            //     Math.PI * 2,
+            // );
+            // context.stroke();
+            context.drawImage(
+                this.image,
+                this.frameX * this.width,
+                this.frameY * this.height,
+                this.width,
+                this.height,
+                this.x,
+                this.y,
+                this.width,
+                this.height,
+            );
+        }
+        update(input, deltaTime, enemies) {
+            // Collision detection
+            enemies.forEach((enemy) => {
+                const dx = (enemy.x + enemy.width/2)- (this.x + this.width /2);
+                const dy = (enemy.y + enemy.width/2) - (this.y + this.width /2);
+                const distance = Math.sqrt(dx * dx + dy * dy);
+            if(distance < enemy.width/2 + this.width/2){
+                gameOver = true
+            }
+            });
+            // Sprite Animation
+            if (this.frameTimer > this.frameInterval) {
+                if (this.frameX >= this.maxFrame) this.frameX = 0;
+                else this.frameX++;
+                this.frameTimer = 0;
+            } else {
+                this.frameTimer += deltaTime;
+            }
+            if (input.keys.indexOf('ArrowRight') > -1) {
+                this.speed = 5;
+            } else if (input.keys.indexOf('ArrowLeft') > -1) {
+                this.speed = -5;
+            } else if (input.keys.indexOf('ArrowUp') > -1 && this.onGround()) {
+                this.vy -= 32;
+            } else {
+                this.speed = 0;
+            }
+            // Horizontal movement
+            this.x += this.speed;
+            if (this.x < 0) {
+                this.x = 0;
+            } else if (this.x > this.gameWidth - this.width) {
+                this.x = this.gameWidth - this.width;
+            }
+            // Vertical movement
+            this.y += this.vy;
+            if (!this.onGround()) {
+                this.vy += this.weight;
+                this.maxFrame = 5;
+                this.frameY = 1;
+            } else {
+                this.y = this.gameHeight - this.height;
+                this.maxFrame = 8;
+                this.frameY = 0;
+            }
+        }
+        onGround() {
+            return this.y >= this.gameHeight - this.height;
+        }
+    }
+    class Background {
+        constructor(gameWidth, gameHeight) {
+            this.gameWidth = gameWidth;
+            this.gameHeight = gameHeight;
+            this.image = document.getElementById('backgroundImage');
+            this.x = 0;
+            this.y = 0;
+            this.width = 2400;
+            this.height = 720;
+            this.speed = 7;
+        }
+        draw(context) {
+            context.drawImage(
+                this.image,
+                this.x,
+                this.y,
+                this.width,
+                this.height,
+            );
+            context.drawImage(
+                this.image,
+                this.x + this.width - this.speed,
+                this.y,
+                this.width,
+                this.height,
+            );
+        }
+        update() {
+            this.x -= this.speed;
+            if (this.x < 0 - this.width) this.x = 0;
+        }
+    }
+    class Enemy {
+        constructor(gameWidth, gameHeight) {
+            this.gameWidth = gameWidth;
+            this.gameHeight = gameHeight;
+            this.width = 160;
+            this.height = 119;
+            this.image = document.getElementById('enemyImage');
+            this.x = this.gameWidth;
+            this.y = this.gameHeight - this.height;
+            this.frameX = 0;
+            this.maxFrame = 5;
+            this.fps = 20;
+            this.frameTimer = 0;
+            this.frameInterval = 1000 / this.fps;
+            this.speed = 8;
+            this.markedForDeletion = false;
+        }
+        /**
+         * Draws the player image on the canvas.
+         * @param {CanvasRenderingContext2D} context - The drawing context for the canvas.
+         */
+        draw(context) {
+            // All of the hitbox drawn in
+            // context.strokeStyle = 'white';
+            // context.strokeRect(this.x, this.y, this.width, this.height);
+            // context.beginPath();
+            // context.arc(
+            //     this.x + this.width / 2,
+            //     this.y + this.height / 2,
+            //     this.width / 2,
+            //     0,
+            //     Math.PI * 2,
+            // );
+            // context.stroke();
+            context.drawImage(
+                this.image,
+                this.frameX * this.width,
+                0,
+                this.width,
+                this.height,
+                this.x,
+                this.y,
+                this.width,
+                this.height,
+            );
+        }
+        update(deltaTime) {
+            if (this.frameTimer > this.frameInterval) {
+                if (this.frameX >= this.maxFrame) this.frameX = 0;
+                else this.frameX++;
+                this.frameTimer = 0;
+            } else {
+                this.frameTimer += deltaTime;
+            }
+            this.x -= this.speed;
+            if (this.x < 0 - this.width) {
+                this.markedForDeletion = true;
+                score++;
+            }
+        }
     }
 
-    for (let j = 0; j < state.frames ; j++){
-    let postionX = j * spriteWidth
-    let postionY = index * spriteHeight
-    frames.loc.push({x: postionX, y: postionY})
+    function handleEnemys(deltaTime) {
+        if (enemyTimer > enemyInterval + randomEnemyInterval) {
+            enemies.push(new Enemy(canvas.width, canvas.height));
+            console.log(enemies);
+            randomEnemyInterval = Math.random() * 1900 + 100;
+            enemyTimer = 0;
+        } else {
+            enemyTimer += deltaTime;
+        }
+        enemies.forEach((enemy) => {
+            enemy.draw(ctx);
+            enemy.update(deltaTime);
+        });
+        enemies = enemies.filter((enemy) => !enemy.markedForDeletion);
     }
-    spriteAnimations[state.name] = frames
-})
+    function displayStatusText(context) {
+        context.font = '40px Helvetica';
+        context.fillStyle = 'black';
+        context.fillText('Score:' + score, 20, 50);
+        context.font = '40px Helvetica';
+        context.fillStyle = 'white';
+        context.fillText('Score:' + score, 22, 52);
+        if(gameOver){
+            context.textAlign = 'center'
+            context.fillStyle = 'black';
+            context.fillText('GAME OVER! Try again.', canvas.width/2, 200);
+            context.textAlign = 'center'
+            context.fillStyle = 'white';
+            context.fillText('GAME OVER! Try again.', canvas.width/2 +2, 202);
 
-function animate(){
-    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-    let postion = Math.floor(gameFrame/staggerFrames) % spriteAnimations[playerState].loc.length
+        }
+    }
 
-    let frameX = spriteWidth * postion
-    let frameY = spriteAnimations[playerState].loc[postion].y
-    ctx.drawImage(playerImage, frameX, frameY, spriteWidth, spriteHeight, 0, 0, spriteWidth, spriteHeight)
+    const input = new InputHandler();
+    const player = new Player(canvas.width, canvas.height);
+    const background = new Background(canvas.width, canvas.height);
 
+    let lastTime = 0;
+    let enemyTimer = 0;
+    let enemyInterval = 2000;
+    let randomEnemyInterval = Math.random() * 1000 + 500;
 
-
-    gameFrame++
-    requestAnimationFrame(animate)
-}
-
-animate()
+    function animate(timeStamp) {
+        const deltaTime = timeStamp - lastTime;
+        lastTime = timeStamp;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        background.draw(ctx);
+        background.update();
+        player.draw(ctx);
+        player.update(input, deltaTime, enemies);
+        displayStatusText(ctx);
+        handleEnemys(deltaTime);
+        if(!gameOver )requestAnimationFrame(animate);
+    }
+    animate(0);
+});
