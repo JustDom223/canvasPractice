@@ -6,7 +6,7 @@ window.addEventListener('load', function () {
     let enemies = [];
     let score = 0;
     let gameOver = false;
-    const fullScreenButton = document.getElementById('fullScreenButton')
+    const fullScreenButton = document.getElementById('fullScreenButton');
 
     /**
      * Handles user input for controlling the player.
@@ -102,6 +102,20 @@ window.addEventListener('load', function () {
          * @param {CanvasRenderingContext2D} context - The drawing context for the canvas.
          */
         draw(context) {
+            // Visulise hitbox
+            // The context.arc needs to be the same as the collision
+            // context.lineWidth = 5;
+            // context.strokeStyle = 'white';
+            // context.beginPath();
+            // context.arc(
+            //     this.x + this.width / 2-20,
+            //     this.y + this.height / 2,
+            //     this.width / 2.5,
+            //     0,
+            //     Math.PI * 2,
+            // );
+            // context.stroke()
+            context.stroke();
             context.drawImage(
                 this.image,
                 this.frameX * this.width,
@@ -125,11 +139,11 @@ window.addEventListener('load', function () {
             // Collision detection
             enemies.forEach((enemy) => {
                 const dx =
-                    enemy.x + enemy.width / 2 - (this.x + this.width / 2);
+                    enemy.x + enemy.width / 2 - 20 - (this.x + this.width / 2);
                 const dy =
-                    enemy.y + enemy.width / 2 - (this.y + this.width / 2);
+                    enemy.y + enemy.width / 2 - (this.y + this.width / 2 + 20);
                 const distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance < enemy.width / 2 + this.width / 2) {
+                if (distance < enemy.width / 2.5 + this.width / 3) {
                     gameOver = true;
                 }
             });
@@ -141,12 +155,16 @@ window.addEventListener('load', function () {
             } else {
                 this.frameTimer += deltaTime;
             }
-            // controls
+            // Controls
             if (input.keys.indexOf('ArrowRight') > -1) {
                 this.speed = 5;
             } else if (input.keys.indexOf('ArrowLeft') > -1) {
                 this.speed = -5;
-            } else if ((input.keys.indexOf('ArrowUp') > -1 || input.keys.indexOf('swipe up') > -1) && this.onGround()) {
+            } else if (
+                (input.keys.indexOf('ArrowUp') > -1 ||
+                    input.keys.indexOf('swipe up') > -1) &&
+                this.onGround()
+            ) {
                 this.vy -= 32;
             } else {
                 this.speed = 0;
@@ -256,6 +274,19 @@ window.addEventListener('load', function () {
          * @param {CanvasRenderingContext2D} context - The drawing context for the canvas.
          */
         draw(context) {
+            // Visulise hitbox
+            // The context.arc needs to be the same as the collision
+            // context.lineWidth = 5;
+            // context.strokeStyle = 'white';
+            // context.beginPath();
+            // context.arc(
+            //     this.x + this.width / 2-20,
+            //     this.y + this.height / 2,
+            //     this.width / 2.5,
+            //     0,
+            //     Math.PI * 2,
+            // );
+            // context.stroke()
             context.drawImage(
                 this.image,
                 this.frameX * this.width,
@@ -347,17 +378,16 @@ window.addEventListener('load', function () {
         animate(0);
     }
 
-    function toggleFullScreen(){
-        if(!document.fullscreenElement){
-            canvas.requestFullscreen().catch(err => {
-                alert(`Error, can't enable full-screen mode: ${err.message}`)
-            })
-        }else{
-            document.exitFullscreen()
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            canvas.requestFullscreen().catch((err) => {
+                alert(`Error, can't enable full-screen mode: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
         }
     }
-    fullScreenButton.addEventListener('click', toggleFullScreen)
-
+    fullScreenButton.addEventListener('click', toggleFullScreen);
 
     let lastTime = 0;
     let enemyTimer = 0;
@@ -386,35 +416,4 @@ window.addEventListener('load', function () {
     const background = new Background(canvas.width, canvas.height);
 
     animate(0);
-
-    // Commented Out Code for Future Use
-    // Drawing the player hitbox and visual guides:
-    // These lines draw a stroke around the player and an arc to visualize the hitbox.
-    // Put this code inside the Player's draw() method if you need it for debugging purposes.
-    // context.strokeStyle = 'white';
-    // context.strokeRect(this.x, this.y, this.width, this.height);
-    // context.beginPath();
-    // context.arc(
-    //     this.x + this.width / 2,
-    //     this.y + this.height / 2,
-    //     this.width / 2,
-    //     0,
-    //     Math.PI * 2,
-    // );
-    // context.stroke();
-
-    // Drawing the enemy hitbox and visual guides:
-    // These lines draw a stroke around the enemy and an arc to visualize the hitbox.
-    // Put this code inside the Enemy's draw() method if you need it for debugging purposes.
-    // context.strokeStyle = 'white';
-    // context.strokeRect(this.x, this.y, this.width, this.height);
-    // context.beginPath();
-    // context.arc(
-    //     this.x + this.width / 2,
-    //     this.y + this.height / 2,
-    //     this.width / 2,
-    //     0,
-    //     Math.PI * 2,
-    // );
-    // context.stroke();
 });
