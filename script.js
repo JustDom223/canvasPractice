@@ -356,6 +356,8 @@ window.addEventListener('load', function () {
             document.exitFullscreen()
         }
     }
+    fullScreenButton.addEventListener('click', toggleFullScreen)
+
 
     let lastTime = 0;
     let enemyTimer = 0;
