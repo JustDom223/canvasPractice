@@ -61,7 +61,7 @@ window.addEventListener('load', function () {
                 }
             });
 
-            window.addEventListener('touchend', (e)=> {
+            window.addEventListener('touchend', ()=> {
                 this.keys.splice(this.keys.indexOf('swipe up'), 1);
                 this.keys.splice(this.keys.indexOf('swipe down'), 1);
             });
